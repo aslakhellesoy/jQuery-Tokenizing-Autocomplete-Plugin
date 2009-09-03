@@ -30,6 +30,19 @@
                 inputToken: "token-input-input-token-facebook"
             }
         });
+
+        $("#tokenize3").tokenInput("/", {
+          localSearch: true,
+          localSearchTokenList: [
+            {"id":"111","name":"Albert"},
+            {"id":"222","name":"Albuss"},
+            {"id":"3333","name":"Burt"},
+            {"id":"4444","name":"Bernie"},
+            {"id":"5555","name":"BoJangles"},
+            {"id":"6666","name":"Zulu"}
+          ]
+        });
+
     });
     </script>
 </head>
@@ -46,5 +59,11 @@
         <h2>Facebook style</h2>
         <input type="text" id="tokenize2" name="blah2" />
     </div>
+
+    <div>
+        <h2>Local dataset listing</h2>
+        <input type="text" id="tokenize2" name="blah2" />
+    </div>
+
 </body>
 </html>

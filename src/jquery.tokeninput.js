@@ -23,7 +23,9 @@ $.fn.tokenInput = function (url, options) {
         method: "GET",
         contentType: "json",
         queryParam: "q",
-        onResult: null
+        onResult: null,
+        localSearch: false,
+        localSearchTokenList: null
     }, options);
 
     settings.classes = $.extend({
@@ -541,26 +543,49 @@ $.TokenList = function (input, settings) {
 
     // Do the actual search
     function run_search(query) {
-        var cached_results = cache.get(query);
-        if(cached_results) {
-            populate_dropdown(query, cached_results);
+      var cached_results = cache.get(query);
+      if(cached_results) {
+        populate_dropdown(query, cached_results);
+      } else {
+        if(settings.localSearch) {
+          run_local_search(query)
         } else {
-			var queryStringDelimiter = settings.url.indexOf("?") < 0 ? "?" : "&";
-			var callback = function(results) {
-			  if($.isFunction(settings.onResult)) {
-			      results = settings.onResult.call(this, results);
-			  }
-              cache.add(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
-              populate_dropdown(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
-            };
-            
-            if(settings.method == "POST") {
-			    $.post(settings.url + queryStringDelimiter + settings.queryParam + "=" + query, {}, callback, settings.contentType);
-		    } else {
-		        $.get(settings.url + queryStringDelimiter + settings.queryParam + "=" + query, {}, callback, settings.contentType);
-		    }
+          run_remote_search(query)
         }
+      } 
     }
+
+  function run_remote_search(query) {
+    var queryStringDelimiter = settings.url.indexOf("?") < 0 ? "?" : "&";
+    var callback = function(results) {
+      if($.isFunction(settings.onResult)) {
+        results = settings.onResult.call(this, results);
+      }
+      cache.add(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
+      populate_dropdown(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
+    };
+
+    if(settings.method == "POST") {
+      $.post(settings.url + queryStringDelimiter + settings.queryParam + "=" + query, {}, callback, settings.contentType);
+    } else {
+      $.get(settings.url + queryStringDelimiter + settings.queryParam + "=" + query, {}, callback, settings.contentType);
+    }
+  }
+
+   function run_local_search(query) {
+     var regex = new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + query + ")(?![^<>]*>)(?![^&;]+;)", "i")
+
+     var results = $.grep(settings.localSearchTokenList, function(json, i) {
+       return regex.test(json.name);
+     })
+
+     if($.isFunction(settings.onResult)) {
+       results = settings.onResult.call(this, results);
+     }
+      
+     cache.add(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
+     populate_dropdown(query, settings.jsonContainer ? results[settings.jsonContainer] : results);
+   }
 };
 
 // Really basic cache for the results
