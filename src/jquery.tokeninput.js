@@ -382,8 +382,14 @@ $.TokenList = function (input, settings) {
             input_token.appendTo(token_list);
         }
 
-        // Show the input box and give it focus again
-        input_box.focus();
+        // Show the input box and give it focus again.
+        // The timeout is required for the left/right arrows
+        // to work in IE. Happy to hear about better solutions.
+        if ($.browser.msie) {
+            setTimeout( function() { input_box.focus(); }, 500);
+        } else {
+            input_box.focus();
+        }
     }
 
     // Toggle selection of a token in the token list
